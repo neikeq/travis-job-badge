@@ -1,24 +1,26 @@
 Travis Job Badges
 ========
 
-Badge utility for specific travis build jobs.
+Request badges for specific travis build jobs.
+
+Uses http://shields.io to generate badges.
 
 ## Usage
 
-##### Redirect to job in last build:
+##### Redirect to an specific job in the last build:
 
 ```
-url/{owner}/{repository}/{job}
+https://url/{owner}/{repository}/{job}
 ```
 
-##### Get badge for job in last build:
+##### Get badge for an specific job in the last build:
 
 ```
-url/{owner}/{repository}/{job}/badge
+https://url/{owner}/{repository}/{job}/badge
 ```
 
-##### Both in Markdown:
+##### Using both together in Markdown:
 
 ``` Markdown
-[![Badge](url/{owner}/{repository}/{job}/badge)](url/{owner}/{repository}/{job})
+[![Badge](https://url/{owner}/{repository}/{job}/badge)](https://url/{owner}/{repository}/{job})
 ```
