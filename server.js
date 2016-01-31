@@ -1,5 +1,4 @@
 var express = require('express');
-var fs = require('fs');
 var request = require('request');
 var NodeCache = require('node-cache');
 
@@ -76,7 +75,7 @@ app.get('/:username/:repository/:job/badge', function(req, res) {
       if (buildId) {
         getBuildJobState(repoId, buildId, lastBuild, req.params.job, function(job) {
           if (job) {
-            sendResponse(job, res);
+            sendResponse(job, req.query.subject, res);
           }
           else {
             res.status(404);
@@ -88,7 +87,7 @@ app.get('/:username/:repository/:job/badge', function(req, res) {
         sendResponse({
           id: -1,
           state: 'unknown'
-        }, res);
+        }, req.query.subject, res);
       }
     }
     else {
@@ -169,16 +168,21 @@ function saveBuildCache(repoId, buildId, jobs, repoLastBuild) {
   });
 }
 
-function sendResponse(job, res) {
-  res.redirect(301, 'https://img.shields.io/badge/build-' + stateToStatus(job.state) + '.svg');
+function sendResponse(job, subject, res) {
+  var badgeName = (subject ? subject : 'build') + '-' + stateToBadge(job.state);
+  res.redirect(301, 'https://img.shields.io/badge/' + badgeName + '.svg');
 }
 
-function stateToStatus(state) {
+function stateToBadge(state) {
   switch (state) {
     case 'passed':
       return 'passing-brightgreen';
     case 'failed':
       return 'failing-red';
+    case 'received':
+    case 'created':
+    case 'started':
+      return 'building-yellow';
     default:
       return 'unknown-lightgrey';
   }

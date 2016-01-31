@@ -19,6 +19,8 @@ https://url/{owner}/{repository}/{job}
 https://url/{owner}/{repository}/{job}/badge
 ```
 
+You can optionally specify a `subject` query parameter for the badge subject. Otherwise, it defaults to _"build"_.
+
 ##### Using both together in Markdown:
 
 ``` Markdown
