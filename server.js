@@ -1,8 +1,18 @@
 var express = require('express');
+var mkdirp = require('mkdirp');
 var request = require('request');
+var cachedRequest = require('cached-request')(request);
 var NodeCache = require('node-cache');
 
 var buildsCache = new NodeCache();
+
+var badgesDirectory = 'tmp/badges';
+mkdirp(badgesDirectory, function(err) {
+  if (err) {
+    console.error(err);
+  }
+});
+cachedRequest.setCacheDirectory(badgesDirectory);
 
 var app = express();
 
@@ -10,8 +20,10 @@ app.set('port', (process.env.PORT || 5000));
 
 app.use(function noCache(req, res, next) {
   res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  var date = new Date().toGMTString();
+  res.header('Expires', date);
+  res.header('Date', date);
   res.header('Pragma', 'no-cache');
-  res.header('Expires', 0);
 
   next();
 });
@@ -110,8 +122,7 @@ function getBuildJobState(repoId, buildId, repoLastBuild, jobNumber, callback) {
     }
 
     callback(repoCache.jobs[jobNumber]);
-  }
-  catch (err) {
+  } catch (err) {
     getTravisBuildJobState(repoId, buildId, repoLastBuild, jobNumber, callback);
   }
 }
@@ -170,7 +181,21 @@ function saveBuildCache(repoId, buildId, jobs, repoLastBuild) {
 
 function sendResponse(job, subject, res) {
   var badgeName = (subject ? subject : 'build') + '-' + stateToBadge(job.state);
-  res.redirect(301, 'https://img.shields.io/badge/' + badgeName + '.svg');
+  
+  var req = cachedRequest({
+    url: 'https://img.shields.io/badge/' + badgeName + '.svg'
+  });
+  
+  req.on('response', function (resp) {
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    var date = new Date().toGMTString();
+    resp.headers['Expires'] = date;
+    resp.headers['Date'] = date;
+    resp.headers['Pragma'] = 'no-cache';
+  });
+  
+  res.header('Content-Type', 'image/svg+xml;charset=utf-8');
+  req.pipe(res);
 }
 
 function stateToBadge(state) {
