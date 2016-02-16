@@ -180,7 +180,7 @@ function saveBuildCache(repoId, buildId, jobs, repoLastBuild) {
 }
 
 function sendResponse(job, subject, res) {
-  var badgeName = (subject ? subject : 'build') + '-' + stateToBadge(job.state);
+  var badgeName = (subject ? subject : 'job') + '-' + stateToBadge(job.state);
   
   var req = cachedRequest({
     url: 'https://img.shields.io/badge/' + badgeName + '.svg'
